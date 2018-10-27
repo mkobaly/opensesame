@@ -2,3 +2,5 @@ config.yaml
 .vscode
 vendor
 !vendor/vendor.json
+debug
+opensesame

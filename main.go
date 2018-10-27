@@ -1,14 +1,24 @@
 package main
 
 import (
+	"fmt"
 	cmdline "github.com/galdor/go-cmdline"
+	"io"
 	"io/ioutil"
 	"os"
 	"time"
 )
 
 func main() {
-	logger, _ := New("main", 1)
+	//Setup log file
+	f, err := os.OpenFile("./opensesame.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(fmt.Sprintf("error opening log file: %v", err))
+	}
+	defer f.Close()
+	wrt := io.MultiWriter(os.Stdout, f)
+
+	logger, _ := New("main", 1, wrt)
 	//using config file to hold configuration
 	cmdline := cmdline.New()
 	cmdline.AddOption("c", "config", "config.yaml", "Path to configuration file")
@@ -34,7 +44,7 @@ func main() {
 	wiFiFetcher := WiFiReal{}
 	manager := NewManager(config)
 	//confirm Isteon access
-	err := manager.Authenticate()
+	err = manager.Authenticate()
 	if err != nil {
 		logger.Errorf("Error logging into Isteon: %v", err)
 		os.Exit(1)
