@@ -17,6 +17,7 @@ type Config struct {
 	WifiInterface string
 	SSID          string
 	GarageID      int
+	Logfile       string
 }
 
 //NewConfig creates a new Configuration object needed
@@ -26,6 +27,8 @@ func NewConfig() *Config {
 		Insteon:       Credential{BaseURL: "https://connect.insteon.com/api/v2", Username: "youremail@example.com", Password: "password", ClientID: "api_key_from_insteon"},
 		WifiInterface: "wlan0",
 		SSID:          "ssid_to_track",
+		GarageID:      1118511,
+		Logfile:       "/var/log/opensesame.log",
 	}
 }
 
