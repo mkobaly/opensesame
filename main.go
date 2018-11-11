@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	cmdline "github.com/galdor/go-cmdline"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"time"
+
+	cmdline "github.com/galdor/go-cmdline"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {

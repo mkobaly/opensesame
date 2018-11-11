@@ -45,7 +45,7 @@ func (m *Manager) Process(wifi []WiFi) *WifiStateChange {
 			m.WiFi.macAddress = r.macAddress
 			m.WiFi.signal = r.signal
 			m.logger.WithFields(logrus.Fields{"Signal": r.signal, "LastSeen": r.lastSeen}).Info("Wifi Signal")
-			if r.lastSeen < 8000 {
+			if r.lastSeen < 4000 {
 				if curActive == false {
 					m.WiFiActive = true
 					m.logger.Info("Setting wifi to active")
