@@ -40,33 +40,21 @@ func main() {
 	}
 	log := NewLogger(options)
 
-	// wrt := io.MultiWriter(os.Stdout)
-	// // //Setup log file
-	// if config.Logfile != "" {
-	// 	f, err := os.OpenFile(config.Logfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	// 	if err != nil {
-	// 		panic(fmt.Sprintf("error opening log file: %v", err))
-	// 	}
-	// 	defer f.Close()
-	// 	wrt = io.MultiWriter(os.Stdout, f)
-	// }
-	// logger, _ := New("main", 1, wrt)
-
 	wiFiFetcher := WiFiReal{}
 	manager := NewManager(config, log)
-	//confirm Isteon access
-	err := manager.Authenticate()
-	if err != nil {
-		log.Errorf("Error logging into Isteon: %v", err)
-		os.Exit(1)
-	}
+	// //confirm Isteon access
+	// err := manager.Authenticate()
+	// if err != nil {
+	// 	log.Errorf("Error logging into Isteon: %v", err)
+	// 	os.Exit(1)
+	// }
 	log.Info("Scanning...")
 	run(log, manager, wiFiFetcher)
 }
 
 func run(logger *logrus.Entry, manager *Manager, wifi WiFiFetcher) {
 	//loop forever and poll wifi
-	_, _, day := time.Now().Date()
+	//_, _, day := time.Now().Date()
 	for {
 		wifi := wifi.Fetch(manager.config.WifiInterface)
 		stateChange := manager.Process(wifi)
@@ -79,11 +67,11 @@ func run(logger *logrus.Entry, manager *Manager, wifi WiFiFetcher) {
 			}
 		}
 		time.Sleep(time.Second * 1)
-		_, _, curDay := time.Now().Date()
-		if curDay != day {
-			logger.Info("Refreshing token")
-			manager.RefreshToken()
-			day = curDay
-		}
+		// _, _, curDay := time.Now().Date()
+		// if curDay != day {
+		// 	logger.Info("Refreshing token")
+		// 	manager.RefreshToken()
+		// 	day = curDay
+		// }
 	}
 }

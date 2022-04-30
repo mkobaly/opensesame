@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
-	"github.com/mkobaly/insteon"
-	"github.com/sirupsen/logrus"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type WifiStateChange struct {
@@ -14,8 +14,9 @@ type WifiStateChange struct {
 var errCommandFailed = errors.New("Execuing command failed. Please retry")
 
 type Manager struct {
-	client *insteon.Client
-	config *Config
+	//client *insteon.Client
+	insteon Insteon
+	config  *Config
 	//IsDoorOpen       bool
 	WiFi             *WiFi
 	WiFiActive       bool
@@ -27,10 +28,11 @@ type Manager struct {
 func NewManager(config *Config, logger *logrus.Entry) *Manager {
 	//logger, _ := New("manager", 1)
 	return &Manager{
-		client: insteon.New(config.Insteon.BaseURL),
-		WiFi:   &WiFi{SSID: config.SSID, lastSeen: 99999},
-		config: config,
-		logger: logger,
+		//insteon: NewInsteonClient(config.Insteon.BaseURL, config.Insteon.Username, config.Insteon.Password),
+		insteon: NewInsteonHomeLinkClient(config.Insteon.BaseURL),
+		WiFi:    &WiFi{SSID: config.SSID, lastSeen: 99999},
+		config:  config,
+		logger:  logger,
 	}
 }
 
@@ -103,58 +105,49 @@ func (m *Manager) Rebalance() bool {
 
 //IsDoorOpen will get the insteon status of the garage door sensor
 func (m *Manager) IsDoorOpen() (bool, error) {
-	resp, err := m.client.SendCommand("get_sensor_status", m.config.GarageID)
-	if err != nil {
-		m.logger.Errorf("IsDoorOpen->SendCommand error %s\n", err.Error())
-		return false, err
+
+	isOpen, err := m.insteon.IOLinkStatus(m.config.GarageID)
+	if err == nil {
+		return isOpen, err
 	}
+	m.logger.Errorf("IsDoorOpen->IOLinkStatus error %s\n", err.Error())
 
 	//we need to loop because the commandStatus could be pending
 	for i := 0; i < 5; i++ {
 		time.Sleep(time.Second * 1)
 		m.logger.Infof("IsDoorOpen->Loop Count %d", i)
-		cs, err := m.client.CommandStatus(resp.ID)
-		if err != nil {
-			m.logger.Errorf("IsDoorOpen->CommandStatus error %s", err.Error())
-			//m.logger.StackAsError("test")
-			continue
+		isOpen, err = m.insteon.IOLinkStatus(m.config.GarageID)
+		if err == nil {
+			return isOpen, err
 		}
-		m.logger.Infof("Door cmd status: %v", cs.Status)
-		if cs.Status == "succeeded" {
-			level := cs.Response["level"].(float64)
-			m.logger.Infof("Door sensor level: %v (100 = closed, 0 = open)", level)
-			return level == 0, nil
-		}
-		if cs.Status == "failed" {
-			return false, errCommandFailed
-		}
+		m.logger.Errorf("IsDoorOpen->IOLinkStatus error %s\n", err.Error())
 	}
 	return false, errors.New("Unable to determine door state")
 }
 
 //Authenticate will authenticate with Insteon API
-func (m *Manager) Authenticate() error {
-	m.logger.Info("Authenticating..")
-	err := m.client.Authenticate(m.config.Insteon.ClientID, m.config.Insteon.Username, m.config.Insteon.Password)
-	if err == nil {
-		m.LastAuthenticate = time.Now()
-	}
-	return err
-}
+// func (m *Manager) Authenticate() error {
+// 	m.logger.Info("Authenticating..")
+// 	err := m.client.Authenticate(m.config.Insteon.ClientID, m.config.Insteon.Username, m.config.Insteon.Password)
+// 	if err == nil {
+// 		m.LastAuthenticate = time.Now()
+// 	}
+// 	return err
+// }
 
 //RefreshToken will refresh the authentication token for Insteon API
-func (m *Manager) RefreshToken() error {
-	m.logger.Info("Refreshing token..")
-	err := m.client.RefreshToken()
-	if err == nil {
-		m.LastAuthenticate = time.Now()
-	}
-	return err
-}
+// func (m *Manager) RefreshToken() error {
+// 	m.logger.Info("Refreshing token..")
+// 	err := m.client.RefreshToken()
+// 	if err == nil {
+// 		m.LastAuthenticate = time.Now()
+// 	}
+// 	return err
+// }
 
 //ToggleDoor will toggle the door to open or close
 func (m *Manager) ToggleDoor() error {
-	_, err := m.client.SendCommand("on", m.config.GarageID)
+	err := m.insteon.ToggleIOLink(m.config.GarageID)
 	if err != nil {
 		return err
 	}
@@ -172,3 +165,15 @@ func withRetry(retries int, logger *logrus.Entry, f func() error) (err error) {
 	}
 	return
 }
+
+// func withRetryDeley(retries int, delay int, logger *logrus.Entry, f func() error) (err error) {
+// 	for i := 0; i < retries; i++ {
+// 		err = f()
+// 		if err != nil {
+// 			logger.Errorf("Retry: %v / %v, error: %v", i, retries, err)
+// 		} else {
+// 			return
+// 		}
+// 	}
+// 	return
+// }

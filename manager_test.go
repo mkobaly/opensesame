@@ -2,20 +2,32 @@ package main
 
 import (
 	"io/ioutil"
+	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewManager(t *testing.T) {
+
+	options := LoggerOptions{
+		Application: "opensesame",
+	}
+	log := NewLogger(options)
 	cfg := NewConfig()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, log)
 	if mgr.WiFi.lastSeen != 99999 {
 		t.Errorf("Expected lastSeen of 99999 but but got: %d", mgr.WiFi.lastSeen)
 	}
 }
 
 func TestProcessNotActive(t *testing.T) {
+	options := LoggerOptions{
+		Application: "opensesame",
+	}
+	log := NewLogger(options)
 	cfg := NewConfig()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, log)
 	wifi := []WiFi{
 		WiFi{
 			SSID:     "foo",
@@ -33,8 +45,12 @@ func TestProcessNotActive(t *testing.T) {
 }
 
 func TestProcessActive(t *testing.T) {
+	options := LoggerOptions{
+		Application: "opensesame",
+	}
+	log := NewLogger(options)
 	cfg := NewConfig()
-	mgr := NewManager(cfg)
+	mgr := NewManager(cfg, log)
 	wifi := []WiFi{
 		WiFi{
 			SSID:     "ssid",
@@ -52,15 +68,18 @@ func TestProcessActive(t *testing.T) {
 }
 
 func TestIsDoorOpen(t *testing.T) {
-	content, _ := ioutil.ReadFile("config.yaml")
-	config := LoadConfig(content)
-	manager := NewManager(config)
-	err := manager.Authenticate()
-	if err != nil {
-		t.Errorf("expected no error but got one %s", err.Error())
+	options := LoggerOptions{
+		Application: "opensesame",
 	}
-	_, err = manager.IsDoorOpen()
-	if err != nil {
-		t.Errorf("expected no error but got one %s", err.Error())
+	log := NewLogger(options)
+	cfgPath := "./config.yaml"
+	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
+		return
 	}
+	content, _ := ioutil.ReadFile(cfgPath)
+	cfg := LoadConfig(content)
+	mgr := NewManager(cfg, log)
+
+	_, err := mgr.IsDoorOpen()
+	assert.NoError(t, err)
 }

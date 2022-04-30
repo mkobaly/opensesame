@@ -1,13 +1,14 @@
 package main
 
 import (
-	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Credential struct {
-	BaseURL  string
-	ClientID string
+	BaseURL string
+	//ClientID string
 	Username string
 	Password string
 }
@@ -16,7 +17,7 @@ type Config struct {
 	Insteon       Credential
 	WifiInterface string
 	SSID          string
-	GarageID      int
+	GarageID      string
 	Logfile       string
 }
 
@@ -24,10 +25,10 @@ type Config struct {
 func NewConfig() *Config {
 	//config := Config{}
 	return &Config{
-		Insteon:       Credential{BaseURL: "https://connect.insteon.com/api/v2", Username: "youremail@example.com", Password: "password", ClientID: "api_key_from_insteon"},
+		Insteon:       Credential{BaseURL: "http://192.168.1.1:25105", Username: "fobar", Password: "password"},
 		WifiInterface: "wlan0",
 		SSID:          "ssid_to_track",
-		GarageID:      1118511,
+		GarageID:      "A3BF45",
 		Logfile:       "/var/log/opensesame.log",
 	}
 }

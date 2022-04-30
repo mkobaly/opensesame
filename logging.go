@@ -35,17 +35,6 @@ func NewLogger(options LoggerOptions) *logrus.Entry {
 		}
 	}
 
-	// if options.UseSentry {
-	// 	hook, err := logrus_sentry.NewSentryHook(sentryDSN, []logrus.Level{
-	// 		logrus.PanicLevel,
-	// 		logrus.FatalLevel,
-	// 		logrus.ErrorLevel,
-	// 	})
-	// 	if err == nil {
-	// 		log.Hooks.Add(hook)
-	// 	}
-	// }
-
 	logger := log.WithFields(logrus.Fields{"app": options.Application})
 	return logger
 
