@@ -50,7 +50,7 @@ func (m *Manager) Process(wifi []WiFi) *WifiStateChange {
 			if r.lastSeen < 4000 {
 				if curActive == false {
 					m.WiFiActive = true
-					m.logger.Info("Setting wifi to active")
+					m.logger.Info("WiFi SSID found")
 					return &WifiStateChange{IsActive: true}
 				}
 				return nil
@@ -58,7 +58,7 @@ func (m *Manager) Process(wifi []WiFi) *WifiStateChange {
 		}
 	}
 	if curActive == true {
-		m.logger.Info("Setting wifi to NOT active")
+		m.logger.Info("WiFi SSID lost")
 		m.WiFiActive = false
 		return &WifiStateChange{IsActive: false}
 	}
@@ -74,13 +74,13 @@ func (m *Manager) Rebalance() bool {
 		isOpen = o
 		return e
 	})
-	m.logger.Infof("Rebalance Door is open: %v", isOpen)
+	m.logger.WithField("isOpen", isOpen).Info("Rebalancing Door")
 	if err != nil {
 		m.logger.Errorf("IsDoorOpen Error %v", err)
 		return false
 	}
 	if m.WiFiActive {
-		m.logger.Info("WiFi Active")
+		m.logger.Info("WiFi is active")
 		if !isOpen {
 			m.logger.Info("Toggling Door")
 			err := m.ToggleDoor()
@@ -90,7 +90,7 @@ func (m *Manager) Rebalance() bool {
 			return true
 		}
 	} else {
-		m.logger.Info("WiFi not active")
+		m.logger.Info("WiFi is not active")
 		if isOpen {
 			m.logger.Info("Toggling Door")
 			err := m.ToggleDoor()
