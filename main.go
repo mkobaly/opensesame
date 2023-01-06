@@ -63,15 +63,9 @@ func run(logger *logrus.Entry, manager *Manager, wifi WiFiFetcher) {
 			changeHappened := manager.Rebalance()
 			if changeHappened {
 				//toggling garage takes some time so need to wait
-				time.Sleep(time.Second * 8)
+				time.Sleep(time.Second * 10)
 			}
 		}
 		time.Sleep(time.Second * 1)
-		// _, _, curDay := time.Now().Date()
-		// if curDay != day {
-		// 	logger.Info("Refreshing token")
-		// 	manager.RefreshToken()
-		// 	day = curDay
-		// }
 	}
 }
